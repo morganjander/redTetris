@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-
 import { createStage, checkCollision } from '../gameHelpers';
 import { useSocket } from '../contexts/SocketProvider';
+import queryString from 'query-string'
 // Styled Components
 import { StyledTetrisWrapper, StyledTetris } from './styles/StyledTetris';
 
@@ -52,6 +52,14 @@ const Tetris = () => {
   const pauseGame = () => {
     socket.emit('pauseGame')
   }
+
+  useEffect(() => {
+    if (socket) {
+      console.log(queryString.parse(window.location.search))
+      socket.emit('join', queryString.parse(window.location.search))
+    }
+      
+  })
 
   useEffect(() => {
     if (socket) {
