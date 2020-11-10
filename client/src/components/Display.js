@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { useSocket } from '../contexts/SocketProvider';
 import { StyledDisplay } from './styles/StyledDisplay';
 
-
 const Display = ({ gameOver, text }) => {
   const socket = useSocket()
   const [message, setMessage] = useState('')
@@ -17,7 +16,7 @@ const Display = ({ gameOver, text }) => {
   }, [socket])
  
   return (
-    <StyledDisplay gameOver={gameOver}>{message}</StyledDisplay>
+    <StyledDisplay gameOver={gameOver}>{text}</StyledDisplay>
   )
 }
 

@@ -1,15 +1,10 @@
-import React, { useEffect } from 'react';
-import { StyledStage } from './styles/StyledStage';
-import { useSocket } from '../contexts/SocketProvider';
+import React from 'react';
+import { StyledStage, StyledNextStage } from './styles/StyledStage';
 
 import { Cell } from './Cell';
 
-const Stage = ({ stage }) => {
-  const socket = useSocket()
-  useEffect(() => {
-    if (socket == null) return
-    socket.emit('current-stage', stage)
-  })
+export const Stage = ({ stage }) => {
+  
   return (
     <StyledStage width={stage[0].length} height={stage.length}>
     {stage.map(row => row.map((cell, x) => <Cell key={x} type={cell[0]}/>))}
@@ -18,4 +13,17 @@ const Stage = ({ stage }) => {
   
 }
 
-export default Stage;
+
+export const NextStage = ({ stage }) => {
+  
+  return (
+    <>
+    <h1 style={{"font-family": "Pixel", color: "#999"}}>Next</h1>
+    <StyledNextStage width={stage[0].length} height={stage.length}>
+    {stage.map(row => row.map((cell, x) => <Cell key={x} type={cell[0]}/>))}
+    </StyledNextStage>
+    </>
+    
+  )
+  
+}

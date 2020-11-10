@@ -10,7 +10,21 @@ const randomTetrominos = () => {
 
 class Game {
     constructor(){
-        this.tetrominos = randomTetrominos()
+        this.tetrominos = randomTetrominos(),
+        this.players = []
+    }
+
+    addPlayer(name) {
+        const players = [...this.players]
+        if (players.length < 2) {
+            players.push(name)
+            this.players = players
+        }
+    }
+
+    removePlayer(name) {
+        const players = this.players.filter(player => player !== name)
+        this.players = players
     }
 }
 

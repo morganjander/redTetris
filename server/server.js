@@ -14,19 +14,18 @@ let playerName, roomName
 io.on('connection', (socket) => {
    
    socket.on('join', ({name, room}) => {
-      playerName = name
-      roomName = room
-      console.log(name + " joined room" + room)
+      newGame.addPlayer(name)
+      console.log(newGame.players + " joined room")
    })
 
    socket.on("reset-tetro", () => {
-      io.emit("random-tetro", newGame.randomTetromino())
+      io.emit("random-tetro", newGame.randomTetrominos)
    })
 
-   socket.on('left', ({name, room}) => {
-      playerName = name
-      roomName = room
-      console.log(name + " left room" + room)
+   socket.on('left', (name) => {
+      console.log(name)
+      newGame.removePlayer(name)
+      console.log(newGame.players)
    })
    
    socket.on('send-message', (data) => {
@@ -34,7 +33,7 @@ io.on('connection', (socket) => {
    })
 
    socket.on('startGame', () => {
-      io.emit('start-game', newGame.randomTetromino());
+      io.emit('startGame', newGame.tetrominos);
   })
 
   socket.on('row-cleared', () => {
@@ -45,11 +44,15 @@ io.on('connection', (socket) => {
    io.emit('pauseGame');
 })
 
+socket.on('game-over', () => {
+   io.emit("gameover")
+})
+
    socket.on('current-stage', (data) => {
       socket.broadcast.emit('opponent-stage', data)
    })
    socket.on('disconnect', () => {
-      console.log(playerName + " left room " + roomName)
+     
       //socket.leave(room);
    });
 });

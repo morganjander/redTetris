@@ -48,7 +48,7 @@ export const usePlayer = () => {
   };
 
   const resetPlayer = useCallback((next) => {
-    
+
     if (list) {
       setPlayer({
         pos: { x: STAGE_WIDTH / 2 - 2, y: 0 },

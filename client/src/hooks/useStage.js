@@ -1,12 +1,17 @@
 import { useState, useEffect } from 'react';
-import { createStage } from '../gameHelpers';
+import { createStage,STAGE_HEIGHT, STAGE_WIDTH} from '../gameHelpers';
 import { useSocket } from '../contexts/SocketProvider';
 
 export const useStage = (player, resetPlayer) => {
-  const [stage, setStage] = useState(createStage());
+  const [stage, setStage] = useState(createStage(STAGE_HEIGHT, STAGE_WIDTH));
   const [rowsCleared, setRowsCleared] = useState(0)
-  const [next, setNext] = useState(1)
+  const [next, setNext] = useState(0)
+
   const socket = useSocket()
+  useEffect(() => {
+    if (socket == null) return
+    socket.emit('current-stage', stage)
+  })
 
   useEffect(() => {
     setRowsCleared(0);
@@ -72,5 +77,5 @@ export const useStage = (player, resetPlayer) => {
     
   }, [player, resetPlayer, next, socket]);
 
-  return [stage, setStage, rowsCleared];
+  return [stage, setStage, rowsCleared, next];
 };
