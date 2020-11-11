@@ -7,25 +7,34 @@ const Player = require('./Player')
 const {updateTetromino, updatePlayer} = require('./functions')
 
 const PORT = 4000;
-const newGame = new Game()
-
-let playerName, roomName
+const games = { name: {}}
 
 io.on('connection', (socket) => {
+
+   io.emit('available-games', games)
    
    socket.on('join', ({name, room}) => {
-      newGame.addPlayer(name)
-      console.log(newGame.players + " joined room")
+      if(!games[room]){
+         games[room] = new Game(room)
+         console.log("creating room")
+      }
+      if(games[room].addPlayer(name)){
+         io.emit('tetroList', games[room].tetrominos);
+         console.log(name + " joined " + games[room].name)
+         socket.broadcast.emit("player-joined", (name))
+         io.emit('available-games', games)
+      }
+      io.emit('available-games', games)
    })
 
-   socket.on("reset-tetro", () => {
-      io.emit("random-tetro", newGame.randomTetrominos)
-   })
+  
 
-   socket.on('left', (name) => {
-      console.log(name)
-      newGame.removePlayer(name)
-      console.log(newGame.players)
+   socket.on('left', ({name, room}) => {
+      games[room].removePlayer(name)
+      if(games[room].players.length === 0){
+         console.log("deleting " + games[room].name)
+         delete games[room]
+      }
    })
    
    socket.on('send-message', (data) => {
@@ -33,7 +42,7 @@ io.on('connection', (socket) => {
    })
 
    socket.on('startGame', () => {
-      io.emit('startGame', newGame.tetrominos);
+      io.emit('startGame');
   })
 
   socket.on('row-cleared', () => {

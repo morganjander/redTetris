@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom'
 import { createStage, checkCollision, STAGE_HEIGHT, STAGE_WIDTH} from '../gameHelpers';
 import { useSocket } from '../contexts/SocketProvider';
 import queryString from 'query-string'
@@ -23,22 +24,21 @@ const Tetris = () => {
   const [dropTime, setDropTime] = useState(null);
   const [gameOver, setGameOver] = useState(false);
   const [gamePaused, setGamePaused] = useState(false);
-  const [name, setName] = useState("")
+  const [data, setData] = useState({})
+  const [start, setStart] = useState(false)
 
-  const [player, updatePlayerPos, resetPlayer, playerRotate] = usePlayer();
+  const [player, updatePlayerPos, resetPlayer, playerRotate, playerList, setPlayerList] = usePlayer();
   const [stage, setStage, rowsCleared, next] = useStage(player, resetPlayer);
   const  [score, setScore, rows, setRows, level, setLevel] = useGameStatus(rowsCleared);
 
   const socket = useSocket()
-  const list = localStorage.getItem('tetroList')
   
   const movePlayer = dir => {
     if (!checkCollision(player, stage, { x: dir, y: 0 })) {
       updatePlayerPos({ x: dir, y: 0 });
     }
   }
-
-  const reset = () => {
+  function reset() {
     setStage(createStage(STAGE_HEIGHT, STAGE_WIDTH));
        setDropTime(1000)
        resetPlayer(0)
@@ -46,6 +46,7 @@ const Tetris = () => {
        setScore(0);
        setRows(0);
        setLevel(0)
+       setStart(true)
   }
 
   const startGame = () => {
@@ -54,7 +55,6 @@ const Tetris = () => {
 
   const leaveGame = () => {
     
-    socket.emit('left', name)
   }
 
   const pauseGame = () => {
@@ -64,23 +64,26 @@ const Tetris = () => {
   useEffect(() => {
     if (socket) {
       const data = queryString.parse(window.location.search)
-      const { name } = data
-      
-      setName(name)
-      
+      setData(data)
       socket.emit('join', data)
 
+      socket.on('player-joined', (name) => {
+        alert(`${name} has joined the game`)
+      })
     }
       
   }, [socket])
 
   useEffect(() => {
     if (socket) {
-      socket.on('startGame', (list) => {
-        localStorage.setItem('tetroList', list);
-        reset()
+      socket.on("tetroList", (list) => {
+        setPlayerList(list)
+      })
+      socket.on('startGame', () => {
+      reset()
      });
     }
+
   })
 
   useEffect(() => {
@@ -166,19 +169,24 @@ const Tetris = () => {
     <StyledTetrisWrapper role="button" tabIndex="0" onKeyDown={e => move(e)} onKeyUp={keyUp}>
       <StyledTetris>
         <Stage stage={stage} />
-        <aside>
+        <aside >
           {gameOver ? (
             <Display gameOver={gameOver} text="Game Over" />
           ) : (
             <div>
-              <Next next={list[next]}/>
+              <Next next={start ? playerList[next] : 0}/>
              </div>
           )}
+          {gamePaused ? <Paused/>: <StartButton callback={startGame} text="Start Game"/>}
+          <Link onClick={() => socket.emit('left', data)}
+                to={'/'}>
+            <StartButton text="Leave Game"/>
+          </Link>
+          
         </aside>
         <OpponentStage />
       </StyledTetris>
-      {gamePaused ? <Paused/>: <StartButton callback={startGame} text="Start Game"/>}
-          <StartButton callback={leaveGame} text="Leave Game"/>
+      
     </StyledTetrisWrapper>
     </>
   );

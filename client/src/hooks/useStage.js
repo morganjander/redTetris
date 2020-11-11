@@ -5,7 +5,8 @@ import { useSocket } from '../contexts/SocketProvider';
 export const useStage = (player, resetPlayer) => {
   const [stage, setStage] = useState(createStage(STAGE_HEIGHT, STAGE_WIDTH));
   const [rowsCleared, setRowsCleared] = useState(0)
-  const [next, setNext] = useState(0)
+  const [next, setNext] = useState(1)
+
 
   const socket = useSocket()
   useEffect(() => {
@@ -16,12 +17,16 @@ export const useStage = (player, resetPlayer) => {
   useEffect(() => {
     setRowsCleared(0);
     setStage(prev => updateStage(prev));
-
+    let index = 0
     const sweepRows = newStage => 
     newStage.reduce((acum, row) => {
       if (row.findIndex(cell => cell[0] === 0) === -1 && row[0][0] !== 1) {
         setRowsCleared(prev => prev + 1);
-        socket.emit('row-cleared')
+        index++
+        if (index > 1) {
+          socket.emit('row-cleared')
+        }
+        
         acum.unshift(new Array(newStage[0].length).fill([0, 'clear'])); //add new blank row to the top
         return acum;
       }

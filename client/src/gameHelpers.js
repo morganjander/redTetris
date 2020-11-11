@@ -1,4 +1,4 @@
-export const STAGE_WIDTH = 12; //12
+export const STAGE_WIDTH = 10; //12
 export const STAGE_HEIGHT = 20;//20
 
 export const createStage = (height, width) =>
@@ -21,7 +21,6 @@ export const checkCollision = (player, stage, { x: moveX, y: moveY }) => {
           stage[y + player.pos.y + moveY][x + player.pos.x + moveX][1] !==
             'clear'
         ) {
-          console.log("checking collision true- tetromino:"  + player.tetromino + "player pos x" + player.pos.x  + "player pos y" + player.pos.y +" - movex: " + moveX + " - movey: " + moveY + "stage: " + stage)
           return true;
         }
       }

@@ -2,6 +2,11 @@ import React from 'react';
 import {NextStage} from './Stage';
 
 const tetros = {
+  0: [[[0, 'clear'], [0, 'clear'], [0, 'clear']],
+      [[0, 'clear'], [0, 'clear'], [0, 'clear']],
+      [[0, 'clear'], [0, 'clear'], [0, 'clear']],
+      [[0, 'clear'], [0, 'clear'], [0, 'clear']],
+    ],
   I: [[[0, 'clear'], ['I', 'clear'], [0, 'clear']],
       [[0, 'clear'], ['I', 'clear'], [0, 'clear']],
       [[0, 'clear'], ['I', 'clear'], [0, 'clear']],

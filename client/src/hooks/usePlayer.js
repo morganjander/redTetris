@@ -1,7 +1,6 @@
 import { useState, useCallback } from 'react';
 import { TETROMINOS } from '../tetrominos';
 import { STAGE_WIDTH, checkCollision } from '../gameHelpers';
-
 export const usePlayer = () => {
   const [player, setPlayer] = useState({
     pos: { x: 0, y: 0 },
@@ -9,8 +8,8 @@ export const usePlayer = () => {
     collided: false,
   });
 
-  const list = localStorage.getItem('tetroList')
-
+  const [playerList, setPlayerList] = useState("")
+ 
   const rotate = (matrix, dir) => {
     // Make the cols become rows(transpose)
     const rotatedTetro = matrix.map((_, index) =>
@@ -48,16 +47,17 @@ export const usePlayer = () => {
   };
 
   const resetPlayer = useCallback((next) => {
-
-    if (list) {
+   // console.log("usePlayer list: " + list)
+    
+    if (playerList) {
       setPlayer({
         pos: { x: STAGE_WIDTH / 2 - 2, y: 0 },
-        tetromino: TETROMINOS[list[next]].shape,
+        tetromino: TETROMINOS[playerList[next]].shape,
         collided: false,
       });
     }
       
-  }, [list]);
+  }, [playerList]);
 
-  return [player, updatePlayerPos, resetPlayer, playerRotate];
+  return [player, updatePlayerPos, resetPlayer, playerRotate, playerList, setPlayerList];
 };
