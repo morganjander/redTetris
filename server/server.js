@@ -61,7 +61,6 @@ socket.on('game-over', () => {
       socket.broadcast.emit('opponent-stage', data)
    })
    socket.on('disconnect', () => {
-     
       //socket.leave(room);
    });
 });

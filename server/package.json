@@ -5,14 +5,19 @@
   "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "devStart": "nodemon server.js"
+    "devStart": "nodemon server.js",
+    "start": "node server.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
     "esm": "^3.2.25",
+    "express": "^4.17.1",
     "nodemon": "^2.0.6",
     "socket.io": "^2.3.0"
+  },
+  "engines": {
+    "node": "12.13.1"
   }
 }
