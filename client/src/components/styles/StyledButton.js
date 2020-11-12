@@ -1,11 +1,10 @@
 import styled from 'styled-components'
 
-export const StyledStartButton = styled.div`
-    box-sizing: border-box;
-    margin: 10px 0 20px 0;
-    padding: 10px;
+export const StyledButton = styled.div`
+    margin: 10px 0;
+    padding: 10px 0;
     min-height: 20px;
-    max-width: 12vw;
+    max-width: 14vw;
     border: 4px solid #999;
     color: #999;
     background: #ab2617;

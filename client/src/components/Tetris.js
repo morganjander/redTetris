@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom'
 import { createStage, checkCollision, STAGE_HEIGHT, STAGE_WIDTH} from '../gameHelpers';
 import { useSocket } from '../contexts/SocketProvider';
+import { useTetris } from '../contexts/TetrisProvider'
 import queryString from 'query-string'
 // Styled Components
 import { StyledTetrisWrapper, StyledTetris } from './styles/StyledTetris';
@@ -17,7 +18,7 @@ import {Stage} from './Stage';
 import OpponentStage from './OpponentStage'
 import Display from './Display';
 import Next from './Next'
-import StartButton from './StartButton';
+import Button from './Button';
 import Paused from './Paused';
 
 const Tetris = () => {
@@ -27,11 +28,14 @@ const Tetris = () => {
   const [data, setData] = useState({})
   const [start, setStart] = useState(false)
 
-  const [player, updatePlayerPos, resetPlayer, playerRotate, playerList, setPlayerList] = usePlayer();
+  const [player, updatePlayerPos, resetPlayer, playerRotate] = usePlayer();
   const [stage, setStage, rowsCleared, next] = useStage(player, resetPlayer);
   const  [score, setScore, rows, setRows, level, setLevel] = useGameStatus(rowsCleared);
 
   const socket = useSocket()
+  const tetros = useTetris()
+
+  console.log("TETRISLIST in Tetris: " + tetros)
   
   const movePlayer = dir => {
     if (!checkCollision(player, stage, { x: dir, y: 0 })) {
@@ -76,9 +80,6 @@ const Tetris = () => {
 
   useEffect(() => {
     if (socket) {
-      socket.on("tetroList", (list) => {
-        setPlayerList(list)
-      })
       socket.on('startGame', () => {
       reset()
      });
@@ -106,16 +107,7 @@ const Tetris = () => {
     }
   }, [socket])
  
-  
-
   const drop = () => {
-    //Increase level when player has cleared 10 rows
-    if (rows > (level + 1) * 5){
-      console.log("setting level")
-      setLevel(prev => prev + 1);
-      //also increase speed
-      setDropTime(1000/ (level + 1) + 200);
-    }
     if (!checkCollision(player, stage, { x: 0, y: 1 })) {
       updatePlayerPos({ x: 0, y: 1, collided: false })
     } else {
@@ -133,7 +125,7 @@ const Tetris = () => {
   const keyUp = ( { keyCode } ) => {
     if (!gameOver){
       if (keyCode === 40){
-        setDropTime(1000/ (level + 1) + 200);
+        setDropTime(1200);
       }
     }
 
@@ -174,19 +166,19 @@ const Tetris = () => {
             <Display gameOver={gameOver} text="Game Over" />
           ) : (
             <div>
-              <Next next={start ? playerList[next] : 0}/>
+              {start ? <Next next={tetros ? tetros[next] : 0}/> : null}
              </div>
           )}
-          {gamePaused ? <Paused/>: <StartButton callback={startGame} text="Start Game"/>}
-          <Link onClick={() => socket.emit('left', data)}
+          {gamePaused ? <Paused/>: <Button callback={startGame} text="Start Game"/>}
+          <Link 
+                style={{"text-decoration": "none"}}
+                onClick={() => socket.emit('left', data)}
                 to={'/'}>
-            <StartButton text="Leave Game"/>
+            <Button text="Leave Game"/>
           </Link>
-          
         </aside>
         <OpponentStage />
       </StyledTetris>
-      
     </StyledTetrisWrapper>
     </>
   );

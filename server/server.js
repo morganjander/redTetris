@@ -10,7 +10,6 @@ const PORT = 4000;
 const games = { name: {}}
 
 io.on('connection', (socket) => {
-
    io.emit('available-games', games)
    
    socket.on('join', ({name, room}) => {
@@ -23,6 +22,7 @@ io.on('connection', (socket) => {
          console.log(name + " joined " + games[room].name)
          socket.broadcast.emit("player-joined", (name))
          io.emit('available-games', games)
+
       }
       io.emit('available-games', games)
    })

@@ -1,6 +1,8 @@
 import { useState, useCallback } from 'react';
 import { TETROMINOS } from '../tetrominos';
 import { STAGE_WIDTH, checkCollision } from '../gameHelpers';
+import { useTetris } from '../contexts/TetrisProvider'
+
 export const usePlayer = () => {
   const [player, setPlayer] = useState({
     pos: { x: 0, y: 0 },
@@ -8,8 +10,9 @@ export const usePlayer = () => {
     collided: false,
   });
 
-  const [playerList, setPlayerList] = useState("")
- 
+  const tetros = useTetris()
+  console.log("TETRISLIST in usePlayer: " + tetros)
+
   const rotate = (matrix, dir) => {
     // Make the cols become rows(transpose)
     const rotatedTetro = matrix.map((_, index) =>
@@ -47,17 +50,15 @@ export const usePlayer = () => {
   };
 
   const resetPlayer = useCallback((next) => {
-   // console.log("usePlayer list: " + list)
-    
-    if (playerList) {
+  if (tetros) {
       setPlayer({
         pos: { x: STAGE_WIDTH / 2 - 2, y: 0 },
-        tetromino: TETROMINOS[playerList[next]].shape,
+        tetromino: TETROMINOS[tetros[next]].shape,
         collided: false,
       });
     }
       
-  }, [playerList]);
+  }, [tetros]);
 
-  return [player, updatePlayerPos, resetPlayer, playerRotate, playerList, setPlayerList];
+  return [player, updatePlayerPos, resetPlayer, playerRotate];
 };
