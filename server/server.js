@@ -6,7 +6,7 @@ const Game = require('./Game')
 const Player = require('./Player')
 const {updateTetromino, updatePlayer} = require('./functions')
 
-const PORT = 4000;
+const port = process.env.PORT || 4000;
 const games = { name: {}}
 
 io.on('connection', (socket) => {
@@ -65,7 +65,7 @@ socket.on('game-over', () => {
    });
 });
 
-server.listen(PORT, () => {
-   console.log(`Listening on port ${PORT}`)
+server.listen(port, () => {
+   console.log(`Listening on port ${port}`)
 })
 

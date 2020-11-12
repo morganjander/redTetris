@@ -169,7 +169,9 @@ const Tetris = () => {
               {start ? <Next next={tetros ? tetros[next] : 0}/> : null}
              </div>
           )}
-          {gamePaused ? <Paused/>: <Button callback={startGame} text="Start Game"/>}
+          {gamePaused ? <Paused/>: null}
+          {start ? null : <Button callback={startGame} text="Start Game"/>}
+          {start ? <Button callback={pauseGame} text={gamePaused ? "Unpause":"Pause"}/> : null}
           <Link 
                 style={{"text-decoration": "none"}}
                 onClick={() => socket.emit('left', data)}
