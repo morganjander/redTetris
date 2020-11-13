@@ -1,17 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom'
-import { createStage, checkCollision, STAGE_HEIGHT, STAGE_WIDTH} from '../gameHelpers';
+import { checkCollision } from '../gameHelpers';
 import { useSocket } from '../contexts/SocketProvider';
-import { useTetris } from '../contexts/TetrisProvider'
+import { useTetroList } from '../contexts/TetrisProvider'
 import queryString from 'query-string'
 // Styled Components
 import { StyledTetrisWrapper, StyledTetris } from './styles/StyledTetris';
 
 // Custom Hooks
-import { usePlayer } from '../hooks/usePlayer';
+import { useTetro } from '../hooks/useTetro';
 import { useStage } from '../hooks/useStage';
 import { useInterval } from '../hooks/useInterval';
-import { useGameStatus } from '../hooks/useGameStatus';
 
 // Components
 import {Stage} from './Stage';
@@ -28,37 +27,29 @@ const Tetris = () => {
   const [data, setData] = useState({})
   const [start, setStart] = useState(false)
 
-  const [player, updatePlayerPos, resetPlayer, playerRotate] = usePlayer();
-  const [stage, setStage, rowsCleared, next] = useStage(player, resetPlayer);
-  const  [score, setScore, rows, setRows, level, setLevel] = useGameStatus(rowsCleared);
+  const [tetro, updateTetroPos, resetTetro, tetroRotate] = useTetro();
+  const [stage, next] = useStage(tetro, resetTetro);
 
   const socket = useSocket()
-  const tetros = useTetris()
+  const tetroList = useTetroList()
 
-  console.log("TETRISLIST in Tetris: " + tetros)
+
   
-  const movePlayer = dir => {
-    if (!checkCollision(player, stage, { x: dir, y: 0 })) {
-      updatePlayerPos({ x: dir, y: 0 });
+  const moveTetro = dir => {
+    if (!checkCollision(tetro, stage, { x: dir, y: 0 })) {
+      updateTetroPos({ x: dir, y: 0 });
     }
   }
   function reset() {
-    setStage(createStage(STAGE_HEIGHT, STAGE_WIDTH));
+    //setStage(createStage(STAGE_HEIGHT, STAGE_WIDTH));
        setDropTime(1000)
-       resetPlayer(0)
+       resetTetro(0)
        setGameOver(false);
-       setScore(0);
-       setRows(0);
-       setLevel(0)
        setStart(true)
   }
 
   const startGame = () => {
     socket.emit('startGame')
-  }
-
-  const leaveGame = () => {
-    
   }
 
   const pauseGame = () => {
@@ -108,17 +99,17 @@ const Tetris = () => {
   }, [socket])
  
   const drop = () => {
-    if (!checkCollision(player, stage, { x: 0, y: 1 })) {
-      updatePlayerPos({ x: 0, y: 1, collided: false })
+    if (!checkCollision(tetro, stage, { x: 0, y: 1 })) {
+      updateTetroPos({ x: 0, y: 1, collided: false })
     } else {
       // Game Over
-      if (player.pos.y < 1) {
+      if (tetro.pos.y < 1) {
         console.log("GAME OVER!!!");
         setGameOver(true);
         socket.emit("game-over")
         setDropTime(null);
       }
-      updatePlayerPos({ x: 0, y: 0, collided: true });
+      updateTetroPos({ x: 0, y: 0, collided: true });
     }
   }
 
@@ -131,7 +122,7 @@ const Tetris = () => {
 
   }
 
-  const dropPlayer = () => {
+  const dropTetro = () => {
     setDropTime(null);
     drop();
   }
@@ -139,13 +130,13 @@ const Tetris = () => {
   const move = ({ keyCode }) => {
     if (!gameOver) {
       if (keyCode === 37) {
-        movePlayer(-1);
+        moveTetro(-1);
       } else if (keyCode === 39) {
-        movePlayer(1);
+        moveTetro(1);
       } else if (keyCode === 40) {
-        dropPlayer();
+        dropTetro();
       } else if (keyCode === 38) {
-        playerRotate(stage, 1);
+        tetroRotate(stage, 1);
       } else if (keyCode ===  32){
         pauseGame()
       }
@@ -166,7 +157,7 @@ const Tetris = () => {
             <Display gameOver={gameOver} text="Game Over" />
           ) : (
             <div>
-              {start ? <Next next={tetros ? tetros[next] : 0}/> : null}
+              {start ? <Next next={tetroList ? tetroList[next] : 0}/> : null}
              </div>
           )}
           {gamePaused ? <Paused/>: null}

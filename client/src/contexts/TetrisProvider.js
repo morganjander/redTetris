@@ -3,26 +3,26 @@ import { useSocket } from './SocketProvider'
 
 const TetrisContext = React.createContext()
 
-export function useTetris() {
+export function useTetroList() {
     return useContext(TetrisContext)
 }
 
 export function TetrisProvider ({ children }) {
-    const [tetrisList, setTetrisList] = useState("")
+    const [tetroList, setTetroList] = useState("")
     const socket = useSocket()
 
     useEffect(() => {
         if (socket === null) return
 
         socket.on('tetroList', (list) => {
-            setTetrisList(list)
+            setTetroList(list)
         })
 
         return () => socket.off('tetroList')
     }, [socket])
 
     return (
-        <TetrisContext.Provider value={tetrisList}>
+        <TetrisContext.Provider value={tetroList}>
             {children}
         </TetrisContext.Provider>
     )
