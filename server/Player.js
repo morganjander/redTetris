@@ -1,6 +1,6 @@
 class Player {
-    constructor(tetrominoList){
-        this.tetrominoList = tetrominoList
+    constructor(name){
+        this.name = name
     }
 }
 

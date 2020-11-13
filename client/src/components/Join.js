@@ -14,13 +14,12 @@ export default function Join() {
         if (socket === null) return
         
         socket.on('available-games', (games) => {
-            setGamesList(games)             
-                
+            setGamesList(games)
         })
             
         return () => socket.off('available-games')
 
-    }, [socket])
+    })
 
     const availableGames = () => {
             return (
@@ -30,7 +29,7 @@ export default function Join() {
                         const playerName = value.players[0]
                         return (
                             <Link 
-                            style={{"text-decoration": "none"}}
+                            style={{"textDecoration": "none"}}
                             key={key}
                             onClick={e => {
                                         if (name === ''){
@@ -60,7 +59,7 @@ export default function Join() {
                 <div><input placeholder="Name" className="joinInput" type="text" onChange={e => setName(e.target.value)}/>                </div>
                     {gamesList ? availableGames() : null}
                 <input placeholder="Room" className="joinInput mt-20" type="text" onChange={e => setRoom(e.target.value)}/>
-                <Link style={{"text-decoration": "none"}}
+                <Link style={{"textDecoration": "none"}}
                     onClick={e => (!name || !room) ? e.preventDefault() : null}
                     to={`/play?name=${name}&room=${room}`}>
                         <Button text={"Start New Game"}/>

@@ -14,7 +14,13 @@ const OpponentStage = () => {
 
   useEffect(() => {
     if (socket == null) return
-    socket.on('opponent-stage', (data) => receiveData(data))
+    socket.on('opponent-stage', (data) => {
+      receiveData(data)
+      console.log("received: " + data)
+    })
+    
+
+    return () => socket.off('opponent-stage')
   }, [socket])
 
   if (stage){

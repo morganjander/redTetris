@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom'
-import { checkCollision } from '../gameHelpers';
 import { useSocket } from '../contexts/SocketProvider';
 import { useTetroList } from '../contexts/TetrisProvider'
 import queryString from 'query-string'
@@ -10,7 +9,7 @@ import { StyledTetrisWrapper, StyledTetris } from './styles/StyledTetris';
 // Custom Hooks
 import { useTetro } from '../hooks/useTetro';
 import { useStage } from '../hooks/useStage';
-import { useInterval } from '../hooks/useInterval';
+import { useGame } from '../hooks/useGame'
 
 // Components
 import {Stage} from './Stage';
@@ -26,150 +25,84 @@ const Tetris = () => {
   const [gamePaused, setGamePaused] = useState(false);
   const [data, setData] = useState({})
   const [start, setStart] = useState(false)
+  const [opponent, setOpponent] = useState("")
+  const [winner, setWinner] = useState("")
 
   const [tetro, updateTetroPos, resetTetro, tetroRotate] = useTetro();
-  const [stage, next] = useStage(tetro, resetTetro);
+  const [stage, next] = useStage(tetro, resetTetro, data);
+  const [move, keyUp, startGame, pauseGame, endGame] = useGame(data, setStart, tetro, resetTetro, stage, updateTetroPos, tetroRotate, gameOver, setGameOver, dropTime, setDropTime, setGamePaused, setWinner)
 
   const socket = useSocket()
   const tetroList = useTetroList()
-
-
   
-  const moveTetro = dir => {
-    if (!checkCollision(tetro, stage, { x: dir, y: 0 })) {
-      updateTetroPos({ x: dir, y: 0 });
-    }
-  }
-  function reset() {
-    //setStage(createStage(STAGE_HEIGHT, STAGE_WIDTH));
-       setDropTime(1000)
-       resetTetro(0)
-       setGameOver(false);
-       setStart(true)
-  }
-
-  const startGame = () => {
-    socket.emit('startGame')
-  }
-
-  const pauseGame = () => {
-    socket.emit('pauseGame')
-  }
-
-  useEffect(() => {
-    if (socket) {
+ useEffect(() => {
+    if (socket === null) return
       const data = queryString.parse(window.location.search)
       setData(data)
       socket.emit('join', data)
 
-      socket.on('player-joined', (name) => {
-        alert(`${name} has joined the game`)
+      socket.on('player2-joined', (players) => {
+        const {name} = data
+        const [name1, name2] = players
+        setOpponent(name1 === name ? name2 : name1)
       })
-    }
+    
+
+    return () => socket.off('player2-joined')
       
   }, [socket])
 
   useEffect(() => {
-    if (socket) {
+    if (socket === null) return
       socket.on('startGame', () => {
-      reset()
-     });
-    }
-
-  })
-
-  useEffect(() => {
-    if (socket) {
+        startGame()
+      })
       socket.on('pauseGame', () => {
-        setDropTime(prev => prev === null ? 500 : null)
-        setGamePaused(prev => !prev)
+        pauseGame()
        })
-
-       socket.on("gameover", () => {
-        setGameOver(true)
-        setDropTime(null)
+       socket.on("gameover", (name) => {
+        endGame(name)
        })
-
        socket.on('player-left', () => {
          console.log("player has left")
-         setGameOver(true)
-         setDropTime(null)
+         endGame()
        })
-    }
-  }, [socket])
- 
-  const drop = () => {
-    if (!checkCollision(tetro, stage, { x: 0, y: 1 })) {
-      updateTetroPos({ x: 0, y: 1, collided: false })
-    } else {
-      // Game Over
-      if (tetro.pos.y < 1) {
-        console.log("GAME OVER!!!");
-        setGameOver(true);
-        socket.emit("game-over")
-        setDropTime(null);
-      }
-      updateTetroPos({ x: 0, y: 0, collided: true });
-    }
-  }
 
-  const keyUp = ( { keyCode } ) => {
-    if (!gameOver){
-      if (keyCode === 40){
-        setDropTime(1200);
-      }
-    }
+       return () => {
+        socket.off('startGame')
+        socket.off('pauseGame')
+        socket.off('gameover')
+        socket.off('player-left')
+       }
+    
+  })
 
-  }
-
-  const dropTetro = () => {
-    setDropTime(null);
-    drop();
-  }
-
-  const move = ({ keyCode }) => {
-    if (!gameOver) {
-      if (keyCode === 37) {
-        moveTetro(-1);
-      } else if (keyCode === 39) {
-        moveTetro(1);
-      } else if (keyCode === 40) {
-        dropTetro();
-      } else if (keyCode === 38) {
-        tetroRotate(stage, 1);
-      } else if (keyCode ===  32){
-        pauseGame()
-      }
-    }
-  }
-
-  useInterval(() => {
-    drop();
-  }, dropTime)
-
+ const {name} = data
   return (
     <>
     <StyledTetrisWrapper role="button" tabIndex="0" onKeyDown={e => move(e)} onKeyUp={keyUp}>
       <StyledTetris>
+        <p style={{"color": "#999"}}>{name}</p>
         <Stage stage={stage} />
         <aside >
           {gameOver ? (
-            <Display gameOver={gameOver} text="Game Over" />
+            <Display gameOver={gameOver} text={`Game Over: ${winner} won!`}/>
           ) : (
             <div>
               {start ? <Next next={tetroList ? tetroList[next] : 0}/> : null}
              </div>
           )}
           {gamePaused ? <Paused/>: null}
-          {start ? null : <Button callback={startGame} text="Start Game"/>}
-          {start ? <Button callback={pauseGame} text={gamePaused ? "Unpause":"Pause"}/> : null}
+          {start ? null : <Button callback={() => socket.emit('startGame', data)} text="Start Game"/>}
+          {start ? <Button callback={() => socket.emit('pauseGame', data)} text={gamePaused ? "Unpause":"Pause"}/> : null}
           <Link 
-                style={{"text-decoration": "none"}}
+                style={{"textDecoration": "none"}}
                 onClick={() => socket.emit('left', data)}
                 to={'/'}>
             <Button text="Leave Game"/>
           </Link>
         </aside>
+        <p style={{"color": "#999"}}>{opponent}</p>
         <OpponentStage />
       </StyledTetris>
     </StyledTetrisWrapper>

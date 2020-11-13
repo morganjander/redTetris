@@ -2,15 +2,16 @@ import { useState, useEffect } from 'react';
 import { createStage,STAGE_HEIGHT, STAGE_WIDTH} from '../gameHelpers';
 import { useSocket } from '../contexts/SocketProvider';
 
-export const useStage = (player, resetPlayer) => {
+export const useStage = (player, resetPlayer, data) => {
   const [stage, setStage] = useState(createStage(STAGE_HEIGHT, STAGE_WIDTH));
   const [next, setNext] = useState(1)
-
+  const {room} = data
 
   const socket = useSocket()
   useEffect(() => {
     if (socket == null) return
-    socket.emit('current-stage', stage)
+    const packet = {room, stage}
+    socket.emit('current-stage', packet)
   })
 
   useEffect(() => {

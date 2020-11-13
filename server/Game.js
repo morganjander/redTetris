@@ -8,12 +8,22 @@ class Game {
 
     addPlayer(name) {
         const players = [...this.players]
-        if (players.length < 2) {
-            console.log("adding player " + name)
+        if (players.length > 1) return null
+        if (players.length === 0) {
+            console.log("adding player1 " + name)
             players.push(name)
             this.players = players
-            return true
-        } else return false
+            return 1
+        } else {
+            console.log("adding player2 " + name)
+            players.push(name)
+            this.players = players
+            return 2
+        }
+    }
+
+    getPlayers() {
+        return this.players
     }
 
     removePlayer(name) {

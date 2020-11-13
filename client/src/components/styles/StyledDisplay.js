@@ -3,7 +3,7 @@ import styled from 'styled-components'
 export const StyledDisplay = styled.div`
     box-sizing: border-box;
     display: flex;
-    text-align: center;
+    align-items: center;
     margin: 0 10 20px 0;
     padding: 20px;
     border: 4px solid #999;

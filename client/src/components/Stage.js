@@ -18,7 +18,7 @@ export const NextStage = ({ stage }) => {
   
   return (
     <>
-    <h1 style={{"fontFamily": "Pixel", color: "#999"}}>Next: </h1>
+    <p style={{"fontFamily": "Pixel", color: "#999"}}>Next: </p>
     <StyledNextStage width={stage[0].length} height={stage.length}>
     {stage.map(row => row.map((cell, x) => <Cell key={x} type={cell[0]}/>))}
     </StyledNextStage>
