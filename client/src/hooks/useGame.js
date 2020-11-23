@@ -1,9 +1,10 @@
 import { useSocket } from '../contexts/SocketProvider';
+import { usePlayer } from '../contexts/PlayerProvider';
+
 import { checkCollision } from '../gameHelpers';
 import { useInterval } from '../hooks/useInterval';
 
 export const useGame = (data, setStart, tetro, resetTetro, stage, updateTetroPos, tetroRotate, gameOver, setGameOver, dropTime, setDropTime, setGamePaused, setWinner) => {
-
     const socket = useSocket()
 
     const startGame = () => {
@@ -14,7 +15,7 @@ export const useGame = (data, setStart, tetro, resetTetro, stage, updateTetroPos
     }
 
     const pauseGame = () => {
-        setDropTime(prev => prev === null ? 500 : null)
+        setDropTime(prev => prev === null ? 700 : null)
         setGamePaused(prev => !prev)
     }
 
@@ -35,7 +36,7 @@ export const useGame = (data, setStart, tetro, resetTetro, stage, updateTetroPos
           } else if (keyCode === 38) {
             tetroRotate(stage, 1);
           } else if (keyCode ===  32){
-            socket.emit('pauseGame')
+            socket.emit('pauseGame', data)
           }
         }
       }

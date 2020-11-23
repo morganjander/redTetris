@@ -6,29 +6,70 @@ class Game {
         this.tetrominos = this.randomTetrominos()
     }
 
-    addPlayer(name) {
+    addPlayer(newPlayer) {
         const players = [...this.players]
-        if (players.length > 1) return null
-        if (players.length === 0) {
-            console.log("adding player1 " + name)
-            players.push(name)
-            this.players = players
-            return 1
-        } else {
-            console.log("adding player2 " + name)
-            players.push(name)
-            this.players = players
-            return 2
-        }
+        players.push(newPlayer)
+        this.players = players
+        return players.length
     }
 
-    getPlayers() {
+    getAllPlayers() {
         return this.players
     }
 
-    removePlayer(name) {
-        const players = this.players.filter(player => player !== name)
+    getPlayer(name) {
+        const player = this.players.find(player => player.name === name)
+        return player
+    }
+
+    addRowToOtherPlayers({name, room}) {
+        const players = this.players.map(player => {
+            const p = {...player}
+            if (p.name !== name){
+                console.log("adding row")
+                var row = p.blockedRow
+                row++
+                p.blockedRow = row
+            }
+            return p
+        })
         this.players = players
+    }
+
+    updatePlayerStage({name, playerStage}) {
+        const players = this.players.map(player => {
+         const p = {...player}
+            if (p.name === name){
+                p.stage = playerStage
+                // if (p.blockedRow > 0){
+                    
+                //     for(var i=0;i < p.blockedRow;i++){
+                //         console.log("adding blocked row " + i)
+                //         p.stage.shift()
+                //         p.stage.push(new Array(p.stage[0].length).fill([1, 'blocked']))
+                //     }
+                // }
+            }
+            return p
+        })
+        this.players = players
+    }
+
+    setPlayerLost(name) {
+        const players = this.players.map(player => {
+            const p = { ...player}
+            if (player.name === name) {
+                p.lost = true
+            }
+            return p
+        })
+        this.players = players
+    }
+
+    removePlayer(name) {
+        const players = this.players.filter(player => player.name !== name)
+        this.players = players
+        return players.length
     }
 
     randomTetrominos = () => {

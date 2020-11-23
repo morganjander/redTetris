@@ -13,11 +13,9 @@ export function TetrisProvider ({ children }) {
 
     useEffect(() => {
         if (socket === null) return
-
         socket.on('tetroList', (list) => {
             setTetroList(list)
         })
-
         return () => socket.off('tetroList')
     }, [socket])
 
@@ -26,6 +24,4 @@ export function TetrisProvider ({ children }) {
             {children}
         </TetrisContext.Provider>
     )
-
-    
 }

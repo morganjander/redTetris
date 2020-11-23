@@ -1,47 +1,40 @@
 import { useState, useEffect } from 'react';
-import { createStage,STAGE_HEIGHT, STAGE_WIDTH} from '../gameHelpers';
 import { useSocket } from '../contexts/SocketProvider';
+import { usePlayer } from '../contexts/PlayerProvider';
 
 export const useStage = (player, resetPlayer, data) => {
-  const [stage, setStage] = useState(createStage(STAGE_HEIGHT, STAGE_WIDTH));
+  const [playerData, setPlayerData, playerStage, setPlayerStage] = usePlayer()
   const [next, setNext] = useState(1)
   const {room} = data
-
+  const name = playerData.name
   const socket = useSocket()
+  
   useEffect(() => {
-    if (socket == null) return
-    const packet = {room, stage}
-    socket.emit('current-stage', packet)
-  })
-
-  useEffect(() => {
-    setStage(prev => updateStage(prev));
-    let index = 0
-    const sweepRows = newStage => 
-    newStage.reduce((acum, row) => {
-      if (row.findIndex(cell => cell[0] === 0) === -1 && row[0][0] !== 1) {
-      
-        index++
-        if (index > 1) {
-          socket.emit('row-cleared')
+    setPlayerStage(prev => updateStage(prev))
+    
+    const sweepRows = newStage => {
+      let index = 0
+      const result = newStage.reduce((acum, row) => {
+        if (row.findIndex(cell => cell[0] === 0) === -1 && row[0][0] !== 1) {
+          acum.unshift(new Array(newStage[0].length).fill([0, 'clear']));//add new blank row to the top
+          index++
+          if (index > 1) {
+            socket.emit('row-cleared', {name, room})
+          }
+          return acum;
         }
         
-        acum.unshift(new Array(newStage[0].length).fill([0, 'clear'])); //add new blank row to the top
+       
+        acum.push(row);
         return acum;
-      }
-      acum.push(row);
-      return acum;
-    }, [])
-
-    const addRows = stage => {
-      stage.shift()
-      stage.push(new Array(stage[0].length).fill([1, 'blocked']))
-      return stage
+      }, [])
+      return result
     }
-
+  
     const updateStage = prevStage => {
       // First flush the stage
-      
+      if(!prevStage) return null
+      if (!prevStage[0]) return null
       const newStage = prevStage.map(row =>
         row.map(cell => {
           if (cell[1] === 'blocked') return [1, 'blocked']
@@ -49,7 +42,6 @@ export const useStage = (player, resetPlayer, data) => {
           return cell
         }),
       );
-     
       
       // Then draw the tetromino
       player.tetromino.forEach((row, y) => {
@@ -66,20 +58,16 @@ export const useStage = (player, resetPlayer, data) => {
       if (player.collided) {      
         resetPlayer(next);
         setNext(prev => prev === 999 ? 0 : prev + 1)
-        return sweepRows(newStage)
-      }
-
-      if (socket) {
-        socket.on('other-player-cleared', () => {
-          return addRows(newStage)
-        })
+        const stage = sweepRows(newStage)
+        socket.emit('current-stage', {room, name, playerStage})
+        return stage
       }
 
       return newStage;
     };
 
     
-  }, [player, resetPlayer, next, socket]);
+  }, [player, resetPlayer, next, socket, name, room]);
 
-  return [stage, next];
+  return [playerStage, next];
 };

@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom'
 import { useSocket } from '../contexts/SocketProvider';
 import { useTetroList } from '../contexts/TetrisProvider'
+import { useOpponents } from '../contexts/OpponentProvider';
+import { usePlayer } from '../contexts/PlayerProvider';
 import queryString from 'query-string'
 // Styled Components
 import { StyledTetrisWrapper, StyledTetris } from './styles/StyledTetris';
@@ -25,30 +27,25 @@ const Tetris = () => {
   const [gamePaused, setGamePaused] = useState(false);
   const [data, setData] = useState({})
   const [start, setStart] = useState(false)
-  const [opponent, setOpponent] = useState("")
   const [winner, setWinner] = useState("")
-
-  const [tetro, updateTetroPos, resetTetro, tetroRotate] = useTetro();
-  const [stage, next] = useStage(tetro, resetTetro, data);
-  const [move, keyUp, startGame, pauseGame, endGame] = useGame(data, setStart, tetro, resetTetro, stage, updateTetroPos, tetroRotate, gameOver, setGameOver, dropTime, setDropTime, setGamePaused, setWinner)
 
   const socket = useSocket()
   const tetroList = useTetroList()
+  const [playerData, setPlayerData, playerStage, setPlayerStage] = usePlayer()
+
+  const [tetro, updateTetroPos, resetTetro, tetroRotate] = useTetro();
   
+  const [stage, next] = useStage(tetro, resetTetro, data);
+  const [move, keyUp, startGame, pauseGame, endGame] = useGame(data, setStart, tetro, resetTetro, stage, updateTetroPos, tetroRotate, gameOver, setGameOver, dropTime, setDropTime, setGamePaused, setWinner)
+
+  
+  const opponents  = useOpponents()
+
  useEffect(() => {
     if (socket === null) return
       const data = queryString.parse(window.location.search)
       setData(data)
       socket.emit('join', data)
-
-      socket.on('player2-joined', (players) => {
-        const {name} = data
-        const [name1, name2] = players
-        setOpponent(name1 === name ? name2 : name1)
-      })
-    
-
-    return () => socket.off('player2-joined')
       
   }, [socket])
 
@@ -67,7 +64,7 @@ const Tetris = () => {
          console.log("player has left")
          endGame()
        })
-
+       
        return () => {
         socket.off('startGame')
         socket.off('pauseGame')
@@ -76,14 +73,21 @@ const Tetris = () => {
        }
     
   })
+  const startButton = () => {
+    if (!playerData) return null
+    if (playerData.player1 && !start){
+      return <Button callback={() => socket.emit('startGame', data)} text="Start Game"/>
+    }
+    return null
+  }
 
- const {name} = data
+  const {name} = data
   return (
     <>
     <StyledTetrisWrapper role="button" tabIndex="0" onKeyDown={e => move(e)} onKeyUp={keyUp}>
       <StyledTetris>
         <p style={{"color": "#999"}}>{name}</p>
-        <Stage stage={stage} />
+        {playerData && <Stage stage={stage} />}
         <aside >
           {gameOver ? (
             <Display gameOver={gameOver} text={`Game Over: ${winner} won!`}/>
@@ -93,8 +97,9 @@ const Tetris = () => {
              </div>
           )}
           {gamePaused ? <Paused/>: null}
-          {start ? null : <Button callback={() => socket.emit('startGame', data)} text="Start Game"/>}
-          {start ? <Button callback={() => socket.emit('pauseGame', data)} text={gamePaused ? "Unpause":"Pause"}/> : null}
+          {startButton()}
+          
+          {start && !gameOver ? <Button callback={() => socket.emit('pauseGame', data)} text={gamePaused ? "Unpause":"Pause"}/> : null}
           <Link 
                 style={{"textDecoration": "none"}}
                 onClick={() => socket.emit('left', data)}
@@ -102,8 +107,7 @@ const Tetris = () => {
             <Button text="Leave Game"/>
           </Link>
         </aside>
-        <p style={{"color": "#999"}}>{opponent}</p>
-        <OpponentStage />
+        {opponents && opponents.map(opponent => <OpponentStage key={opponent.name} name={opponent.name} stage={opponent.stage}/>)}
       </StyledTetris>
     </StyledTetrisWrapper>
     </>
