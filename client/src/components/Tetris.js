@@ -31,12 +31,12 @@ const Tetris = () => {
 
   const socket = useSocket()
   const tetroList = useTetroList()
-  const [playerData, setPlayerData, playerStage, setPlayerStage] = usePlayer()
+  const playerData = usePlayer()
 
   const [tetro, updateTetroPos, resetTetro, tetroRotate] = useTetro();
   
-  const [stage, next] = useStage(tetro, resetTetro, data);
-  const [move, keyUp, startGame, pauseGame, endGame] = useGame(data, setStart, tetro, resetTetro, stage, updateTetroPos, tetroRotate, gameOver, setGameOver, dropTime, setDropTime, setGamePaused, setWinner)
+  const [playerStage, next] = useStage(tetro, resetTetro, data);
+  const [move, keyUp, startGame, pauseGame, endGame] = useGame(data, setStart, tetro, resetTetro, playerStage, updateTetroPos, tetroRotate, gameOver, setGameOver, dropTime, setDropTime, setGamePaused, setWinner)
 
   
   const opponents  = useOpponents()
@@ -46,7 +46,6 @@ const Tetris = () => {
       const data = queryString.parse(window.location.search)
       setData(data)
       socket.emit('join', data)
-      
   }, [socket])
 
   useEffect(() => {
@@ -61,7 +60,6 @@ const Tetris = () => {
         endGame(name)
        })
        socket.on('player-left', () => {
-         console.log("player has left")
          endGame()
        })
        
@@ -87,7 +85,7 @@ const Tetris = () => {
     <StyledTetrisWrapper role="button" tabIndex="0" onKeyDown={e => move(e)} onKeyUp={keyUp}>
       <StyledTetris>
         <p style={{"color": "#999"}}>{name}</p>
-        {playerData && <Stage stage={stage} />}
+        {playerData && <Stage stage={playerStage.current} />}
         <aside >
           {gameOver ? (
             <Display gameOver={gameOver} text={`Game Over: ${winner} won!`}/>

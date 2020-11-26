@@ -26,7 +26,6 @@ class Game {
         const players = this.players.map(player => {
             const p = {...player}
             if (p.name !== name){
-                console.log("adding row")
                 var row = p.blockedRow
                 row++
                 p.blockedRow = row
@@ -36,19 +35,11 @@ class Game {
         this.players = players
     }
 
-    updatePlayerStage({name, playerStage}) {
+    updatePlayerStage({name, current}) {
         const players = this.players.map(player => {
          const p = {...player}
             if (p.name === name){
-                p.stage = playerStage
-                // if (p.blockedRow > 0){
-                    
-                //     for(var i=0;i < p.blockedRow;i++){
-                //         console.log("adding blocked row " + i)
-                //         p.stage.shift()
-                //         p.stage.push(new Array(p.stage[0].length).fill([1, 'blocked']))
-                //     }
-                // }
+                p.stage = current
             }
             return p
         })

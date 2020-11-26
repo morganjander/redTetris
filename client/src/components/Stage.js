@@ -6,7 +6,6 @@ import { Cell } from './Cell';
 export const Stage = ({ stage }) => {
   if(!stage) return null
   if (!stage[0]) {
-    console.log("stage is: " + JSON.stringify(stage))
     return null
   } 
   

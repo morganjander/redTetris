@@ -32,9 +32,9 @@ io.on('connection', (socket) => {
       io.to(room).emit('startGame')
    })
       
-   socket.on('current-stage', ({room, name, playerStage}) => {
+   socket.on('current-stage', ({room, name, current}) => {
       if(!games[room]) return
-      games[room].updatePlayerStage({name, playerStage})
+      games[room].updatePlayerStage({name, current})
          io.to(room).emit('updatePlayer', games[room].getPlayer(name))
       })
 

@@ -1,17 +1,34 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useSocket } from '../contexts/SocketProvider';
-import { usePlayer } from '../contexts/PlayerProvider';
 
 export const useStage = (player, resetPlayer, data) => {
-  const [playerData, setPlayerData, playerStage, setPlayerStage] = usePlayer()
   const [next, setNext] = useState(1)
-  const {room} = data
-  const name = playerData.name
+  const {room, name} = data
   const socket = useSocket()
+  const playerStage = useRef([])
+
+  useEffect(() => {
+    if (socket === null) return
+        socket.on('your-player', (player) => {
+            playerStage.current = player.stage
+        })
+  })
+
+  useEffect(() => {
+    if (socket === null) return
+    socket.on('add-row', () => {
+      console.log("add row")
+      const current = playerStage.current
+      current.shift()
+      current.push(new Array(current[0].length).fill([1, 'blocked']))
+     
+      playerStage.current = current
+      socket.emit('current-stage', {room, name, current})
+  })
+  return () => socket.off('add-row')
+  }, [socket, name, room])
   
   useEffect(() => {
-    setPlayerStage(prev => updateStage(prev))
-    
     const sweepRows = newStage => {
       let index = 0
       const result = newStage.reduce((acum, row) => {
@@ -24,13 +41,12 @@ export const useStage = (player, resetPlayer, data) => {
           return acum;
         }
         
-       
         acum.push(row);
         return acum;
       }, [])
       return result
     }
-  
+
     const updateStage = prevStage => {
       // First flush the stage
       if(!prevStage) return null
@@ -59,13 +75,15 @@ export const useStage = (player, resetPlayer, data) => {
         resetPlayer(next);
         setNext(prev => prev === 999 ? 0 : prev + 1)
         const stage = sweepRows(newStage)
-        socket.emit('current-stage', {room, name, playerStage})
+        const current = playerStage.current
+        socket.emit('current-stage', {room, name, current})
         return stage
       }
 
       return newStage;
     };
-
+    
+    playerStage.current = updateStage(playerStage.current) 
     
   }, [player, resetPlayer, next, socket, name, room]);
 

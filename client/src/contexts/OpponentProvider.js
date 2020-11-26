@@ -11,7 +11,7 @@ export function useOpponents() {
 export function OpponentProvider({ children }) {
     const [opponents, setOpponents] = useState([])
     const socket = useSocket()
-    const [playerData, setPlayerData, playerStage, setPlayerStage] = usePlayer()
+    const playerData = usePlayer()
     const {name} = playerData
 
     useEffect(() => {
