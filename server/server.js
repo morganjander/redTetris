@@ -29,7 +29,7 @@ io.on('connection', (socket) => {
    })
    
    socket.on('startGame', ({name, room}) => {
-      io.to(room).emit('startGame')
+      socket.to(room).emit('startGame')
    })
       
    socket.on('current-stage', ({room, name, current}) => {
@@ -47,17 +47,25 @@ io.on('connection', (socket) => {
      io.to(room).emit('pauseGame')
    })
 
-   socket.on('game-over', ({name, room}) => {
+   socket.on("game-over", ({name, room}) => {
       if(!games[room]) return
+      console.log("game over")
       games[room].setPlayerLost(name)
       const winner = findWinner(games[room])
       if (winner) {
-            io.to(room).emit("gameover", winner)
+         console.log("we have a winner")
+            io.to(room).emit("winner", winner)
       }
    })
   
    socket.on('left', ({name, room}) => {
       removePlayer(games, room, name)
+      if(!games[room]) return
+      const players = games[room].getAllPlayers()
+      if (players.length === 1){
+         io.to(players[0].id).emit("winner", players[0].name)
+      }
+      socket.emit
    })
    socket.on('disconnect', () => {
       deletePlayer(games, players, socket.id)

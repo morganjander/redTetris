@@ -18,7 +18,7 @@ export const useGame = (data, setStart, tetro, resetTetro, playerStage, updateTe
     }
 
     const endGame = (name) => {
-      setGameOver(true)
+     // setGameOver(true)
       setDropTime(null)
       setWinner(name)
     }
@@ -51,9 +51,10 @@ export const useGame = (data, setStart, tetro, resetTetro, playerStage, updateTe
         } else {
           // Game Over
           if (tetro.pos.y < 1) {
+            socket.emit("game-over", data)
             console.log("GAME OVER!!!");
             setGameOver(true);
-            socket.emit("game-over", data)
+            
             setDropTime(null);
           }
           updateTetroPos({ x: 0, y: 0, collided: true });

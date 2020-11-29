@@ -26,12 +26,14 @@ module.exports = {
 
     findWinner: (game) => {
         var winner = null
+        console.log("game.players.length: " + game.players.length - 1)
         if(game.players) {
             var i = 0
             game.players.forEach(player => {
                 if (player.lost === true) i++
                 if (player.lost === null) winner = player.name
             })
+            console.log("i is" + i)
             if (i === game.players.length - 1) {
                 return winner
             } else {

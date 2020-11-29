@@ -56,8 +56,10 @@ const Tetris = () => {
       socket.on('pauseGame', () => {
         pauseGame()
        })
-       socket.on("gameover", (name) => {
-        endGame(name)
+       socket.on('winner', (name) => {
+        setDropTime(null)
+        setWinner(name)
+        setGameOver(true)
        })
        socket.on('player-left', () => {
          endGame()
@@ -66,7 +68,7 @@ const Tetris = () => {
        return () => {
         socket.off('startGame')
         socket.off('pauseGame')
-        socket.off('gameover')
+        socket.off('winner')
         socket.off('player-left')
        }
     
@@ -74,7 +76,10 @@ const Tetris = () => {
   const startButton = () => {
     if (!playerData) return null
     if (playerData.player1 && !start){
-      return <Button callback={() => socket.emit('startGame', data)} text="Start Game"/>
+      return <Button callback={() => {
+        socket.emit('startGame', data)
+        startGame()
+      }} text="Start Game"/>
     }
     return null
   }
@@ -88,7 +93,7 @@ const Tetris = () => {
         {playerData && <Stage stage={playerStage.current} />}
         <aside >
           {gameOver ? (
-            <Display gameOver={gameOver} text={`Game Over: ${winner} won!`}/>
+            <Display gameOver={gameOver} text={winner === name ? "You win!" : "You lose"}/>
           ) : (
             <div>
               {start ? <Next next={tetroList ? tetroList[next] : 0}/> : null}

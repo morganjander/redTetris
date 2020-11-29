@@ -11,9 +11,9 @@ export function SocketProvider({ children }) {
     const [socket, setSocket] = useState(null)
 
     useEffect(() => {
-        const newSocket = io('http://localhost:4000/')//https://red-tetris-server.herokuapp.com/
+        const newSocket = io('http://localhost:4000/')
+      //  const newSocket = io('https://red-tetris-server.herokuapp.com/')
         setSocket(newSocket)
-        
         return () => newSocket.close()
     }, [])
     return (
