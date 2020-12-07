@@ -1,39 +1,68 @@
 module.exports = {
-
-    deletePlayer : (games, players, id) => {
-        const player = players[id].name
-        delete players[id]
-        Object.entries(games).map(entry => {
-           const [key, value] = entry
-           
-           if (value.players) {
-              if (value.removePlayer(player) === 0) {
-                 console.log("deleting " + value.name)
-                 delete value
-              }
-           }
-        })
+    randomTetrominos : () => {
+        var tetList = ''
+        const tetrominos = 'IJLOSTZ';
+        for (var i = 0; i < 1000; i++) {
+            tetList = tetList.concat(tetrominos[Math.floor(Math.random() * tetrominos.length)])
+        }
+        return tetList
     },
-    
-    removePlayer : (games, room, name) => {
+
+    deletePlayer : (players, id) => {
+        delete players[id]
+        return players
+    },
+    removePlayerFromRoom : (games, room, name) => {
         if (!games[room]) return
+        games[room].setGameStarted()
         if(games[room].removePlayer(name) === 0){
-            console.log("deleting " + games[room].name)
             delete games[room]
          }
+         return games
+    },
+    findPlayerRoom : (games, playerName) => {
+        let result = null
+        Object.entries(games).map(entry => {
+            const [key, value] = entry
+            if (value.players) {
+              const index = value.players.findIndex((player) => player.name === playerName)
+              if (index != -1){
+                result = value.name
+              }
+            }
+         })
+         return result
+    },
+    getAvailableGames: (games) => {
+        const availableGames = []
+        Object.entries(games).map(entry => {
+            const [key, value] = entry
+            if (value.started === false) {
+                availableGames.push(value)
+            }
+        })
+        return availableGames
+    },
 
+    nameIsAvailable: (games, name) => {
+        let result = true
+        Object.entries(games).map(entry => {
+            const [key, value] = entry
+            if(value.name === name) {
+                result = false
+            }
+        })
+        return result
     },
 
     findWinner: (game) => {
         var winner = null
-        console.log("game.players.length: " + game.players.length - 1)
         if(game.players) {
             var i = 0
             game.players.forEach(player => {
                 if (player.lost === true) i++
                 if (player.lost === null) winner = player.name
             })
-            console.log("i is" + i)
             if (i === game.players.length - 1) {
                 return winner
             } else {

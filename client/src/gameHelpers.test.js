@@ -1,4 +1,4 @@
-import { createStage, checkCollision, STAGE_WIDTH, STAGE_HEIGHT} from './gameHelpers'
+import { createStage, checkCollision} from './gameHelpers'
 
 test('creates initial empty stage', () => {
     const array = [[[0, 'clear'], [0, 'clear'], [0, 'clear']],

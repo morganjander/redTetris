@@ -17,11 +17,9 @@ export const useStage = (player, resetPlayer, data) => {
   useEffect(() => {
     if (socket === null) return
     socket.on('add-row', () => {
-      console.log("add row")
       const current = playerStage.current
       current.shift()
       current.push(new Array(current[0].length).fill([1, 'blocked']))
-     
       playerStage.current = current
       socket.emit('current-stage', {room, name, current})
   })
@@ -40,7 +38,6 @@ export const useStage = (player, resetPlayer, data) => {
           }
           return acum;
         }
-        
         acum.push(row);
         return acum;
       }, [])
@@ -79,13 +76,11 @@ export const useStage = (player, resetPlayer, data) => {
         socket.emit('current-stage', {room, name, current})
         return stage
       }
-
       return newStage;
     };
     
     playerStage.current = updateStage(playerStage.current) 
     
-  }, [player, resetPlayer, next, socket, name, room]);
-
+  });
   return [playerStage, next];
 };

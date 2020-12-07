@@ -4,21 +4,34 @@ const server = require('http').Server(app)
 const io = require('socket.io')(server);
 const Game = require('./Game')
 const Player = require('./Player')
-const { deletePlayer, removePlayer, findWinner } = require('./functions')
+const { deletePlayer, removePlayerFromRoom, findPlayerRoom, findWinner, getAvailableGames, nameIsAvailable } = require('./functions')
+const { addRowToOtherPlayers, updatePlayerStage, setPlayerLost } = require('./gameFunctions')
 
 const port = process.env.PORT || 4000;
 const games = { name: {}}
 const players = {id: {}}
 
 io.on('connection', (socket) => {
-   io.emit('available-games', games)
    players[socket.id] = new Player(socket.id)
-   
-   socket.on('join', ({name, room}) => {
+
+   socket.on('get-list', (name) => {
+      if(players[socket.id].name === null){
+         if (nameIsAvailable(players, name)){
+            players[socket.id].setName(name)
+            io.to(socket.id).emit('available-games', getAvailableGames(games))
+         } else {
+            io.to(socket.id).emit('go-back', true)
+         }
+      } else {
+         io.to(socket.id).emit('available-games', getAvailableGames(games))
+      }
+      
+   })
+
+   socket.on('join-game', (room) => {
       if(!games[room]){
          games[room] = new Game(room)
       }
-      players[socket.id].setName(name)
       socket.join(room)      
       if(games[room].addPlayer(players[socket.id]) > 1){
          players[socket.id].setPlayer1False()
@@ -26,20 +39,23 @@ io.on('connection', (socket) => {
       io.to(socket.id).emit('your-player', players[socket.id])
       io.to(room).emit('tetroList', games[room].tetrominos);
       io.to(room).emit('playerList', games[room].getAllPlayers())
+      io.emit('available-games', getAvailableGames(games))
    })
    
    socket.on('startGame', ({name, room}) => {
       socket.to(room).emit('startGame')
+      games[room].setGameStarted()
+      io.emit('available-games', getAvailableGames(games))
    })
       
    socket.on('current-stage', ({room, name, current}) => {
       if(!games[room]) return
-      games[room].updatePlayerStage({name, current})
+      updatePlayerStage({games, room, name, current})
          io.to(room).emit('updatePlayer', games[room].getPlayer(name))
       })
 
   socket.on('row-cleared', ({name, room}) => {
-     games[room].addRowToOtherPlayers({name, room})
+     addRowToOtherPlayers({games, name, room})
      socket.to(room).emit('add-row')
    })
 
@@ -47,28 +63,40 @@ io.on('connection', (socket) => {
      io.to(room).emit('pauseGame')
    })
 
-   socket.on("game-over", ({name, room}) => {
+   socket.on('game-over', ({name, room}) => {
       if(!games[room]) return
-      console.log("game over")
-      games[room].setPlayerLost(name)
+      setPlayerLost({games, room, name})
       const winner = findWinner(games[room])
       if (winner) {
-         console.log("we have a winner")
             io.to(room).emit("winner", winner)
       }
    })
   
-   socket.on('left', ({name, room}) => {
-      removePlayer(games, room, name)
+   socket.on('player-left', ({name, room}) => {
+      removePlayerFromRoom(games, room, name)
+      players[socket.id].setPlayer1True()
+      io.emit('available-games', getAvailableGames(games))
       if(!games[room]) return
-      const players = games[room].getAllPlayers()
-      if (players.length === 1){
-         io.to(players[0].id).emit("winner", players[0].name)
+      const playersLeft = games[room].getAllPlayers()
+      if (playersLeft.length === 1){
+         io.to(playersLeft[0].id).emit("winner", playersLeft[0].name)
       }
-      socket.emit
    })
+
    socket.on('disconnect', () => {
-      deletePlayer(games, players, socket.id)
+      const playerName = players[socket.id].name
+      const room = findPlayerRoom(games, playerName)
+      if (room){
+         removePlayerFromRoom(games, room, playerName)
+         if(games[room]) {
+            const playersLeft = games[room].getAllPlayers()
+            if (playersLeft.length === 1){
+               io.to(playersLeft[0].id).emit("winner", playersLeft[0].name)
+            }
+         }
+      }
+      deletePlayer(players, socket.id)
+      io.emit('available-games', getAvailableGames(games))
    })
 });
 
