@@ -12,7 +12,7 @@ const games = { name: {}}
 const players = {id: {}}
 
 io.on('connection', (socket) => {
-   players[socket.id] = new Player(socket.id)
+   players[socket.id] = new Player(socket.id);
 
    socket.on('get-list', (name) => {
       if(players[socket.id].name === null){
